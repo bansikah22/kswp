@@ -1,6 +1,7 @@
 package kubernetes
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 
@@ -21,15 +22,18 @@ func (c *client) Clientset() kubernetes.Interface {
 }
 
 func NewClient() (Client, error) {
-	userHomeDir, err := os.UserHomeDir()
+	config, err := clientcmd.BuildConfigFromFlags("", "")
 	if err != nil {
-		return nil, err
-	}
-	kubeConfigPath := filepath.Join(userHomeDir, ".kube", "config")
-
-	config, err := clientcmd.BuildConfigFromFlags("", kubeConfigPath)
-	if err != nil {
-		return nil, err
+		// Fallback to local kubeconfig if in-cluster config fails
+		userHomeDir, homeErr := os.UserHomeDir()
+		if homeErr != nil {
+			return nil, fmt.Errorf("failed to get in-cluster config and user home directory: %v, %v", err, homeErr)
+		}
+		kubeConfigPath := filepath.Join(userHomeDir, ".kube", "config")
+		config, err = clientcmd.BuildConfigFromFlags("", kubeConfigPath)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	clientset, err := kubernetes.NewForConfig(config)

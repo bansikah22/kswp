@@ -16,6 +16,7 @@ import (
 
 var olderThan string
 var sweepNamespace string
+var sweepDryRun bool
 
 var sweepCmd = &cobra.Command{
 	Use:   "sweep",
@@ -24,7 +25,7 @@ var sweepCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		var client kubernetes.Client
 		var err error
-		if dryRun {
+		if sweepDryRun {
 			client = mocks.NewMockClient()
 		} else {
 			client, err = kubernetes.NewClient()
@@ -61,7 +62,11 @@ var sweepCmd = &cobra.Command{
 
 		fmt.Printf("Delete %d resources? (y/N) ", len(resources))
 		reader := bufio.NewReader(os.Stdin)
-		input, _ := reader.ReadString('\n')
+		input, err := reader.ReadString('\n')
+		if err != nil {
+			fmt.Println("Error reading input:", err)
+			return
+		}
 		if strings.ToLower(strings.TrimSpace(input)) != "y" {
 			fmt.Println("Sweep aborted.")
 			return
@@ -89,6 +94,6 @@ func filterByAge(resources []models.Resource, duration time.Duration) []models.R
 func init() {
 	rootCmd.AddCommand(sweepCmd)
 	sweepCmd.Flags().StringVar(&olderThan, "older-than", "", "filter resources older than a duration (e.g., 7d, 24h)")
-	sweepCmd.Flags().BoolVar(&dryRun, "dry-run", false, "run in dry-run mode")
+	sweepCmd.Flags().BoolVar(&sweepDryRun, "dry-run", false, "run in dry-run mode")
 	sweepCmd.Flags().StringVarP(&sweepNamespace, "namespace", "n", "", "specify the namespace to sweep")
 }

@@ -53,7 +53,11 @@ var cleanCmd = &cobra.Command{
 
 		fmt.Printf("Delete %d resources? (y/N) ", len(resources))
 		reader := bufio.NewReader(os.Stdin)
-		input, _ := reader.ReadString('\n')
+		input, err := reader.ReadString('\n')
+		if err != nil {
+			fmt.Println("Error reading input:", err)
+			return
+		}
 		if strings.ToLower(strings.TrimSpace(input)) != "y" {
 			fmt.Println("Cleanup aborted.")
 			return
