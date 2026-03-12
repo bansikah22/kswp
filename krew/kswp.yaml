@@ -1,0 +1,33 @@
+apiVersion: krew.googlecontainertools.github.io/v1alpha2
+kind: Plugin
+metadata:
+  name: kswp
+spec:
+  version: "v0.1.0"
+  homepage: https://github.com/bansikah22/kswp
+  shortDescription: "A kubectl plugin to scan and sweep unused resources"
+  description: |
+    kswp is a kubectl plugin that helps you find and remove unused
+    Kubernetes resources like ConfigMaps, Secrets, and more.
+  platforms:
+  - selector:
+      matchLabels:
+        os: linux
+        arch: amd64
+    uri: https://github.com/bansikah22/kswp/releases/download/v0.1.0/kswp-linux-amd64.tar.gz
+    sha256: "..."
+    bin: "kswp"
+  - selector:
+      matchLabels:
+        os: darwin
+        arch: amd64
+    uri: https://github.com/bansikah22/kswp/releases/download/v0.1.0/kswp-darwin-amd64.tar.gz
+    sha256: "..."
+    bin: "kswp"
+  - selector:
+      matchLabels:
+        os: windows
+        arch: amd64
+    uri: https://github.com/bansikah22/kswp/releases/download/v0.1.0/kswp-windows-amd64.tar.gz
+    sha256: "..."
+    bin: "kswp.exe"
