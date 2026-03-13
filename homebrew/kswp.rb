@@ -3,7 +3,7 @@ class Kswp < Formula
   homepage "https://github.com/bansikah22/kswp"
   url "https://github.com/bansikah22/kswp/archive/v0.1.0.tar.gz"
   sha256 "..."
-  license "Apache-2.0"
+  license "MIT"
 
   depends_on "go" => :build
 

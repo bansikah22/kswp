@@ -14,5 +14,18 @@ For detailed installation instructions, please see the [deployment documentation
 - **Interactive UI**: A terminal UI to visualize and manage unused resources.
 - **Cluster Hygiene Score**: Get a score that represents the health of your cluster.
 - **Dependency Graph**: Visualize the dependencies between your Kubernetes resources.
+- **Notifications**: Get notified on Slack or Email when a scan is complete.
 
 For a full list of commands and their flags, see the [command documentation](docs/commands.md).
+
+## Contributing
+
+Contributions are welcome! Please see the [contributing guidelines](CONTRIBUTING.md) for more information.
+
+## Release Process
+
+Please see the [release process documentation](docs/release.md) for more information.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
