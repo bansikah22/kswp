@@ -1,6 +1,6 @@
 module github.com/bansikah22/kswp
 
-go 1.25.8
+go 1.25.0
 
 require (
 	github.com/charmbracelet/bubbles v1.0.0
