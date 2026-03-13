@@ -1,5 +1,6 @@
 # kswp
 [![Release](https://github.com/bansikah22/kswp/actions/workflows/release.yml/badge.svg)](https://github.com/bansikah22/kswp/actions/workflows/release.yml)
+[![CI](https://github.com/bansikah22/kswp/actions/workflows/ci.yml/badge.svg)](https://github.com/bansikah22/kswp/actions/workflows/ci.yml)
 
 kswp is a Kubernetes cluster hygiene tool that detects and safely cleans unused resources.
 
