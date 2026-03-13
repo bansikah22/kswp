@@ -101,7 +101,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if ok {
 					err := cleaner.DeleteResource(m.client.Clientset(), i.resource)
 					if err != nil {
-						// handle error
+						fmt.Println("Error deleting resource:", err)
 					}
 					m.list.RemoveItem(m.list.Index())
 				}
@@ -129,7 +129,7 @@ func (m model) View() string {
 func StartTUI(resources []models.Resource, client kubernetes.Client) {
 	m := NewModel(resources, client)
 	p := tea.NewProgram(m)
-	if err := p.Start(); err != nil {
+	if _, err := p.Run(); err != nil {
 		fmt.Println("Error running program:", err)
 		os.Exit(1)
 	}

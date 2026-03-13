@@ -6,6 +6,7 @@ import (
 
 	"github.com/bansikah22/kswp/pkg/models"
 	v1 "k8s.io/api/core/v1"
+	discoveryv1 "k8s.io/api/discovery/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 )
@@ -18,24 +19,28 @@ func GetServices(clientset kubernetes.Interface, namespace string, listOptions m
 	return services.Items, nil
 }
 
-func IsServiceOrphan(service v1.Service, endpoints []v1.Endpoints) (bool, string) {
+func IsServiceOrphan(service v1.Service, endpointSlices []discoveryv1.EndpointSlice) (bool, string) {
 	if service.Spec.Selector == nil {
 		return false, "service has no selector"
 	}
-	for _, endpoint := range endpoints {
-		if endpoint.Name == service.Name && len(endpoint.Subsets) > 0 {
-			return false, "service has endpoints"
+	for _, slice := range endpointSlices {
+		if slice.Labels["kubernetes.io/service-name"] == service.Name {
+			for _, endpoint := range slice.Endpoints {
+				if endpoint.Conditions.Ready != nil && *endpoint.Conditions.Ready {
+					return false, "service has endpoints"
+				}
+			}
 		}
 	}
 	return true, "No pods match selector"
 }
 
-func GetEndpoints(clientset kubernetes.Interface, namespace string, listOptions metav1.ListOptions) ([]v1.Endpoints, error) {
-	endpoints, err := clientset.CoreV1().Endpoints(namespace).List(context.TODO(), listOptions)
+func GetEndpointSlices(clientset kubernetes.Interface, namespace string, listOptions metav1.ListOptions) ([]discoveryv1.EndpointSlice, error) {
+	endpointSlices, err := clientset.DiscoveryV1().EndpointSlices(namespace).List(context.TODO(), listOptions)
 	if err != nil {
 		return nil, err
 	}
-	return endpoints.Items, nil
+	return endpointSlices.Items, nil
 }
 
 func GetOrphanServices(clientset kubernetes.Interface, namespace string, listOptions metav1.ListOptions) ([]models.Resource, error) {
@@ -44,12 +49,12 @@ func GetOrphanServices(clientset kubernetes.Interface, namespace string, listOpt
 	if err != nil {
 		return nil, err
 	}
-	endpoints, err := GetEndpoints(clientset, namespace, listOptions)
+	endpointSlices, err := GetEndpointSlices(clientset, namespace, listOptions)
 	if err != nil {
 		return nil, err
 	}
 	for _, service := range services {
-		orphan, reason := IsServiceOrphan(service, endpoints)
+		orphan, reason := IsServiceOrphan(service, endpointSlices)
 		if orphan {
 			orphanServices = append(orphanServices, models.Resource{
 				Name:      service.Name,

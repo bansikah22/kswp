@@ -20,11 +20,11 @@ func PrintReport(resources []models.Resource) {
 
 	w := new(tabwriter.Writer)
 	w.Init(os.Stdout, 0, 8, 2, '\t', 0)
-	fmt.Fprintln(w, "KIND\tNAMESPACE\tNAME\tREASON\tAGE")
+	_, _ = fmt.Fprintln(w, "KIND\tNAMESPACE\tNAME\tREASON\tAGE")
 	for _, res := range resources {
-		fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\n", res.Kind, res.Namespace, res.Name, res.Reason, res.Age.Round(time.Second).String())
+		_, _ = fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\n", res.Kind, res.Namespace, res.Name, res.Reason, res.Age.Round(time.Second).String())
 	}
-	w.Flush()
+	_ = w.Flush()
 
 	score := CalculateHygieneScore(resources)
 	fmt.Printf("\nCluster Hygiene Score: %d/100\n", score)

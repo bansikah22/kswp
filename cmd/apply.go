@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 
 	"github.com/bansikah22/kswp/internal/kubernetes"
 	"github.com/bansikah22/kswp/internal/scripting"
@@ -21,7 +21,7 @@ var applyCmd = &cobra.Command{
 			return
 		}
 
-		script, err := ioutil.ReadFile(scriptFile)
+		script, err := os.ReadFile(scriptFile)
 		if err != nil {
 			fmt.Println("Error reading script file:", err)
 			return

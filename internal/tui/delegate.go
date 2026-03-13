@@ -57,9 +57,9 @@ func (d *delegateKeyMap) Render(w io.Writer, m list.Model, index int, listItem l
 	str := fmt.Sprintf("%s %s", checkbox, i.title)
 
 	if index == m.Index() {
-		fmt.Fprint(w, selectedItemStyle.Render("> "+str))
+		_, _ = fmt.Fprint(w, selectedItemStyle.Render("> "+str))
 	} else {
-		fmt.Fprint(w, itemStyle.Render(str))
+		_, _ = fmt.Fprint(w, itemStyle.Render(str))
 	}
 }
 
