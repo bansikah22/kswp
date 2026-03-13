@@ -23,6 +23,7 @@ func (c *MockClient) Clientset() k8s.Interface {
 
 func NewMockClient() kubernetes.Client {
 	return &MockClient{
+		//nolint:staticcheck
 		clientset: fake.NewSimpleClientset(
 			&v1.Pod{
 				ObjectMeta: metav1.ObjectMeta{
