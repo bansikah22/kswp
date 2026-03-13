@@ -7,7 +7,9 @@ import (
 	"strings"
 
 	"github.com/bansikah22/kswp/internal/cleaner"
+	"github.com/bansikah22/kswp/internal/config"
 	"github.com/bansikah22/kswp/internal/kubernetes"
+	"github.com/bansikah22/kswp/internal/notifications"
 	"github.com/bansikah22/kswp/test/mocks"
 	"github.com/spf13/cobra"
 )
@@ -68,6 +70,24 @@ var cleanCmd = &cobra.Command{
 			err := cleaner.DeleteResource(client.Clientset(), res)
 			if err != nil {
 				fmt.Printf("Error deleting %s %s/%s: %s\n", res.Kind, res.Namespace, res.Name, err)
+			}
+		}
+
+		cfg, err := config.Load()
+		if err != nil {
+			fmt.Println("Error loading config:", err)
+		} else {
+			message := fmt.Sprintf("Cleaned %d unused resources.", len(resources))
+			for _, notifierConfig := range cfg.Notifications {
+				notifier, err := notifications.NewNotifier(notifierConfig)
+				if err != nil {
+					fmt.Println("Error creating notifier:", err)
+					continue
+				}
+				err = notifier.Send(message)
+				if err != nil {
+					fmt.Println("Error sending notification:", err)
+				}
 			}
 		}
 	},
