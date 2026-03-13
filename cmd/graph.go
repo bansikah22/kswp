@@ -26,7 +26,11 @@ var graphCmd = &cobra.Command{
 			}
 		}
 
-		label, _ := cmd.Flags().GetString("label")
+		label, err := cmd.Flags().GetString("label")
+		if err != nil {
+			fmt.Println("Error getting label flag:", err)
+			return
+		}
 		resources, err := ScanResources(client, namespace, label)
 		if err != nil {
 			fmt.Println("Error scanning resources:", err)

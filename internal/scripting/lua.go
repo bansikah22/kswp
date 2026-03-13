@@ -15,6 +15,18 @@ func Execute(script string, client kubernetes.Client) error {
 	L := lua.NewState()
 	defer L.Close()
 
+	// Sandbox the Lua environment
+	L.SetGlobal("os", L.NewTable())
+	L.SetGlobal("io", L.NewTable())
+	L.SetGlobal("dofile", L.NewFunction(func(L *lua.LState) int {
+		L.RaiseError("dofile is disabled")
+		return 0
+	}))
+	L.SetGlobal("loadfile", L.NewFunction(func(L *lua.LState) int {
+		L.RaiseError("loadfile is disabled")
+		return 0
+	}))
+
 	// This is a temporary solution to avoid an import cycle.
 	// TODO: Refactor ScanResources into a separate package.
 	var resources []models.Resource
@@ -54,9 +66,6 @@ func Execute(script string, client kubernetes.Client) error {
 		return fmt.Errorf("error getting completed pods: %w", err)
 	}
 	resources = append(resources, completedPods...)
-	if err != nil {
-		return err
-	}
 
 	luaResources := L.NewTable()
 	for _, res := range resources {
