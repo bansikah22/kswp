@@ -22,9 +22,9 @@ jobs:
       - name: Test
         run: go test -v ./...
       - name: Lint
-        uses: golangci/golangci-lint-action@v4
+        uses: golangci/golangci-lint-action@v6 
         with:
-          version: v1.55.2
+          version: v2.5.0
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       - name: Build and push Docker image
