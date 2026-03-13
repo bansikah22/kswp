@@ -11,16 +11,16 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
-func GetReplicaSets(clientset kubernetes.Interface, namespace string) ([]appsv1.ReplicaSet, error) {
-	replicasets, err := clientset.AppsV1().ReplicaSets(namespace).List(context.TODO(), metav1.ListOptions{})
+func GetReplicaSets(clientset kubernetes.Interface, namespace string, listOptions metav1.ListOptions) ([]appsv1.ReplicaSet, error) {
+	replicasets, err := clientset.AppsV1().ReplicaSets(namespace).List(context.TODO(), listOptions)
 	if err != nil {
 		return nil, err
 	}
 	return replicasets.Items, nil
 }
 
-func GetDeployments(clientset kubernetes.Interface, namespace string) ([]appsv1.Deployment, error) {
-	deployments, err := clientset.AppsV1().Deployments(namespace).List(context.TODO(), metav1.ListOptions{})
+func GetDeployments(clientset kubernetes.Interface, namespace string, listOptions metav1.ListOptions) ([]appsv1.Deployment, error) {
+	deployments, err := clientset.AppsV1().Deployments(namespace).List(context.TODO(), listOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -43,13 +43,13 @@ func IsReplicaSetOld(rs appsv1.ReplicaSet, deployments []appsv1.Deployment) (boo
 	return true, "Not used by any active deployment"
 }
 
-func GetOldReplicaSets(clientset kubernetes.Interface, namespace string) ([]models.Resource, error) {
+func GetOldReplicaSets(clientset kubernetes.Interface, namespace string, listOptions metav1.ListOptions) ([]models.Resource, error) {
 	var oldReplicaSets []models.Resource
-	replicasets, err := GetReplicaSets(clientset, namespace)
+	replicasets, err := GetReplicaSets(clientset, namespace, listOptions)
 	if err != nil {
 		return nil, err
 	}
-	deployments, err := GetDeployments(clientset, namespace)
+	deployments, err := GetDeployments(clientset, namespace, listOptions)
 	if err != nil {
 		return nil, err
 	}

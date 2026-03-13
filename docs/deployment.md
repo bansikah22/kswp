@@ -63,3 +63,13 @@ You can deploy `kswp` as a CronJob in your Kubernetes cluster using our Helm cha
 helm repo add kswp https://bansikah22.github.io/kswp/
 helm install kswp-cleaner kswp/kswp
 ```
+
+## 7. Apply a Lua script
+
+You can apply a Lua script to filter and delete resources.
+
+**Usage:**
+
+```bash
+kswp apply -f <script.lua>
+```

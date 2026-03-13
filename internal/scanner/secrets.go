@@ -11,8 +11,8 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
-func GetSecrets(clientset kubernetes.Interface, namespace string) ([]v1.Secret, error) {
-	secrets, err := clientset.CoreV1().Secrets(namespace).List(context.TODO(), metav1.ListOptions{})
+func GetSecrets(clientset kubernetes.Interface, namespace string, listOptions metav1.ListOptions) ([]v1.Secret, error) {
+	secrets, err := clientset.CoreV1().Secrets(namespace).List(context.TODO(), listOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -42,13 +42,13 @@ func IsSecretUsed(secret v1.Secret, pods []v1.Pod) (bool, string) {
 	return false, "Not used by any pod"
 }
 
-func GetUnusedSecrets(clientset kubernetes.Interface, namespace string) ([]models.Resource, error) {
+func GetUnusedSecrets(clientset kubernetes.Interface, namespace string, listOptions metav1.ListOptions) ([]models.Resource, error) {
 	var unusedSecrets []models.Resource
-	pods, err := GetPods(clientset, namespace)
+	pods, err := GetPods(clientset, namespace, metav1.ListOptions{})
 	if err != nil {
 		return nil, err
 	}
-	secrets, err := GetSecrets(clientset, namespace)
+	secrets, err := GetSecrets(clientset, namespace, listOptions)
 	if err != nil {
 		return nil, err
 	}

@@ -10,8 +10,8 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
-func GetServices(clientset kubernetes.Interface, namespace string) ([]v1.Service, error) {
-	services, err := clientset.CoreV1().Services(namespace).List(context.TODO(), metav1.ListOptions{})
+func GetServices(clientset kubernetes.Interface, namespace string, listOptions metav1.ListOptions) ([]v1.Service, error) {
+	services, err := clientset.CoreV1().Services(namespace).List(context.TODO(), listOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -30,21 +30,21 @@ func IsServiceOrphan(service v1.Service, endpoints []v1.Endpoints) (bool, string
 	return true, "No pods match selector"
 }
 
-func GetEndpoints(clientset kubernetes.Interface, namespace string) ([]v1.Endpoints, error) {
-	endpoints, err := clientset.CoreV1().Endpoints(namespace).List(context.TODO(), metav1.ListOptions{})
+func GetEndpoints(clientset kubernetes.Interface, namespace string, listOptions metav1.ListOptions) ([]v1.Endpoints, error) {
+	endpoints, err := clientset.CoreV1().Endpoints(namespace).List(context.TODO(), listOptions)
 	if err != nil {
 		return nil, err
 	}
 	return endpoints.Items, nil
 }
 
-func GetOrphanServices(clientset kubernetes.Interface, namespace string) ([]models.Resource, error) {
+func GetOrphanServices(clientset kubernetes.Interface, namespace string, listOptions metav1.ListOptions) ([]models.Resource, error) {
 	var orphanServices []models.Resource
-	services, err := GetServices(clientset, namespace)
+	services, err := GetServices(clientset, namespace, listOptions)
 	if err != nil {
 		return nil, err
 	}
-	endpoints, err := GetEndpoints(clientset, namespace)
+	endpoints, err := GetEndpoints(clientset, namespace, listOptions)
 	if err != nil {
 		return nil, err
 	}
