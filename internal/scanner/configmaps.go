@@ -11,8 +11,8 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
-func GetConfigMaps(clientset kubernetes.Interface, namespace string) ([]v1.ConfigMap, error) {
-	configmaps, err := clientset.CoreV1().ConfigMaps(namespace).List(context.TODO(), metav1.ListOptions{})
+func GetConfigMaps(clientset kubernetes.Interface, namespace string, listOptions metav1.ListOptions) ([]v1.ConfigMap, error) {
+	configmaps, err := clientset.CoreV1().ConfigMaps(namespace).List(context.TODO(), listOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -42,13 +42,13 @@ func IsConfigMapUsed(configMap v1.ConfigMap, pods []v1.Pod) (bool, string) {
 	return false, "Not used by any pod"
 }
 
-func GetUnusedConfigMaps(clientset kubernetes.Interface, namespace string) ([]models.Resource, error) {
+func GetUnusedConfigMaps(clientset kubernetes.Interface, namespace string, listOptions metav1.ListOptions) ([]models.Resource, error) {
 	var unusedConfigMaps []models.Resource
-	pods, err := GetPods(clientset, namespace)
+	pods, err := GetPods(clientset, namespace, metav1.ListOptions{})
 	if err != nil {
 		return nil, err
 	}
-	configmaps, err := GetConfigMaps(clientset, namespace)
+	configmaps, err := GetConfigMaps(clientset, namespace, listOptions)
 	if err != nil {
 		return nil, err
 	}

@@ -12,8 +12,8 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
-func GetJobs(clientset kubernetes.Interface, namespace string) ([]batchv1.Job, error) {
-	jobs, err := clientset.BatchV1().Jobs(namespace).List(context.TODO(), metav1.ListOptions{})
+func GetJobs(clientset kubernetes.Interface, namespace string, listOptions metav1.ListOptions) ([]batchv1.Job, error) {
+	jobs, err := clientset.BatchV1().Jobs(namespace).List(context.TODO(), listOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -32,9 +32,9 @@ func IsJobCompleted(job batchv1.Job, threshold time.Duration) (bool, string) {
 	return false, "Job has not completed"
 }
 
-func GetCompletedJobs(clientset kubernetes.Interface, threshold time.Duration, namespace string) ([]models.Resource, error) {
+func GetCompletedJobs(clientset kubernetes.Interface, threshold time.Duration, namespace string, listOptions metav1.ListOptions) ([]models.Resource, error) {
 	var completedJobs []models.Resource
-	jobs, err := GetJobs(clientset, namespace)
+	jobs, err := GetJobs(clientset, namespace, listOptions)
 	if err != nil {
 		return nil, err
 	}

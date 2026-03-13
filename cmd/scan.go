@@ -10,6 +10,7 @@ import (
 	"github.com/bansikah22/kswp/pkg/models"
 	"github.com/bansikah22/kswp/test/mocks"
 	"github.com/spf13/cobra"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var dryRun bool
@@ -32,7 +33,12 @@ var scanCmd = &cobra.Command{
 			}
 		}
 
-		resources, err := ScanResources(client, namespace)
+		label, err := cmd.Flags().GetString("label")
+		if err != nil {
+			fmt.Println("Error getting label flag:", err)
+			return
+		}
+		resources, err := ScanResources(client, namespace, label)
 		if err != nil {
 			fmt.Println("Error scanning resources:", err)
 			return
@@ -42,39 +48,56 @@ var scanCmd = &cobra.Command{
 	},
 }
 
-func ScanResources(client kubernetes.Client, namespace string) ([]models.Resource, error) {
+func ScanResources(client kubernetes.Client, namespace string, label string) ([]models.Resource, error) {
 	fmt.Println("Scanning for unused resources...")
 	var resources []models.Resource
 
-	unusedConfigMaps, err := scanner.GetUnusedConfigMaps(client.Clientset(), namespace)
+	listOptions := metav1.ListOptions{}
+	if label != "" {
+		listOptions.LabelSelector = label
+	}
+
+	unusedConfigMaps, err := scanner.GetUnusedConfigMaps(client.Clientset(), namespace, listOptions)
 	if err != nil {
 		return nil, fmt.Errorf("error getting unused configmaps: %w", err)
 	}
 	resources = append(resources, unusedConfigMaps...)
 
-	unusedSecrets, err := scanner.GetUnusedSecrets(client.Clientset(), namespace)
+	unusedSecrets, err := scanner.GetUnusedSecrets(client.Clientset(), namespace, listOptions)
 	if err != nil {
 		return nil, fmt.Errorf("error getting unused secrets: %w", err)
 	}
 	resources = append(resources, unusedSecrets...)
 
-	orphanServices, err := scanner.GetOrphanServices(client.Clientset(), namespace)
+	orphanServices, err := scanner.GetOrphanServices(client.Clientset(), namespace, listOptions)
 	if err != nil {
 		return nil, fmt.Errorf("error getting orphan services: %w", err)
 	}
 	resources = append(resources, orphanServices...)
 
-	oldReplicaSets, err := scanner.GetOldReplicaSets(client.Clientset(), namespace)
+	oldReplicaSets, err := scanner.GetOldReplicaSets(client.Clientset(), namespace, listOptions)
 	if err != nil {
 		return nil, fmt.Errorf("error getting old replicasets: %w", err)
 	}
 	resources = append(resources, oldReplicaSets...)
 
-	completedJobs, err := scanner.GetCompletedJobs(client.Clientset(), 24*time.Hour, namespace)
+	completedJobs, err := scanner.GetCompletedJobs(client.Clientset(), 24*time.Hour, namespace, listOptions)
 	if err != nil {
 		return nil, fmt.Errorf("error getting completed jobs: %w", err)
 	}
 	resources = append(resources, completedJobs...)
+
+	failedPods, err := scanner.GetFailedPods(client.Clientset(), namespace, listOptions)
+	if err != nil {
+		return nil, fmt.Errorf("error getting failed pods: %w", err)
+	}
+	resources = append(resources, failedPods...)
+
+	completedPods, err := scanner.GetCompletedPods(client.Clientset(), 24*time.Hour, namespace, listOptions)
+	if err != nil {
+		return nil, fmt.Errorf("error getting completed pods: %w", err)
+	}
+	resources = append(resources, completedPods...)
 
 	return resources, nil
 }
@@ -83,4 +106,5 @@ func init() {
 	rootCmd.AddCommand(scanCmd)
 	scanCmd.Flags().BoolVar(&dryRun, "dry-run", false, "run in dry-run mode")
 	scanCmd.Flags().StringVarP(&namespace, "namespace", "n", "", "specify the namespace to scan")
+	scanCmd.Flags().String("label", "", "filter resources by label (e.g., 'app=nginx')")
 }

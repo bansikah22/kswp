@@ -28,7 +28,8 @@ var tuiCmd = &cobra.Command{
 			}
 		}
 
-		resources, err := ScanResources(client, tuiNamespace)
+		label, _ := cmd.Flags().GetString("label")
+		resources, err := ScanResources(client, tuiNamespace, label)
 		if err != nil {
 			fmt.Println("Error scanning resources:", err)
 			return
@@ -42,4 +43,5 @@ func init() {
 	rootCmd.AddCommand(tuiCmd)
 	tuiCmd.Flags().BoolVar(&dryRun, "dry-run", false, "run in dry-run mode")
 	tuiCmd.Flags().StringVarP(&tuiNamespace, "namespace", "n", "", "specify the namespace to scan")
+	tuiCmd.Flags().String("label", "", "filter resources by label (e.g., 'app=nginx')")
 }

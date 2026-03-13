@@ -32,7 +32,8 @@ var cleanCmd = &cobra.Command{
 			}
 		}
 
-		resources, err := ScanResources(client, cleanNamespace)
+		label, _ := cmd.Flags().GetString("label")
+		resources, err := ScanResources(client, cleanNamespace, label)
 		if err != nil {
 			fmt.Println("Error scanning resources:", err)
 			return
@@ -76,4 +77,5 @@ func init() {
 	rootCmd.AddCommand(cleanCmd)
 	cleanCmd.Flags().BoolVar(&cleanDryRun, "dry-run", false, "run in dry-run mode")
 	cleanCmd.Flags().StringVarP(&cleanNamespace, "namespace", "n", "", "specify the namespace to clean")
+	cleanCmd.Flags().String("label", "", "filter resources by label (e.g., 'app=nginx')")
 }

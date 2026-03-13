@@ -6,3 +6,13 @@ kswp is a Kubernetes cluster hygiene tool that detects and safely cleans unused 
 ## Installation
 
 For detailed installation instructions, please see the [deployment documentation](docs/deployment.md).
+
+## Features
+
+- **Scan for unused resources**: `kswp` can scan for unused ConfigMaps, Secrets, Services, ReplicaSets, Jobs, and Pods.
+- **Reasoning Engine**: `kswp` will tell you *why* a resource is considered unused.
+- **Interactive UI**: A terminal UI to visualize and manage unused resources.
+- **Cluster Hygiene Score**: Get a score that represents the health of your cluster.
+- **Dependency Graph**: Visualize the dependencies between your Kubernetes resources.
+
+For a full list of commands and their flags, see the [command documentation](docs/commands.md).
