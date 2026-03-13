@@ -25,3 +25,9 @@ jobs:
         uses: golangci/golangci-lint-action@v3
         with:
           version: v1.49.0
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          push: false
+          tags: user/app:latest
