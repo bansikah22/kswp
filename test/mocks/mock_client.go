@@ -7,6 +7,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	batchv1 "k8s.io/api/batch/v1"
 	v1 "k8s.io/api/core/v1"
+	discoveryv1 "k8s.io/api/discovery/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	k8s "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/fake"
@@ -100,17 +101,19 @@ func NewMockClient() kubernetes.Client {
 					},
 				},
 			},
-			&v1.Endpoints{
+			&discoveryv1.EndpointSlice{
 				ObjectMeta: metav1.ObjectMeta{
-					Name:      "service-1",
+					Name:      "service-1-slice",
 					Namespace: "default",
+					Labels: map[string]string{
+						"kubernetes.io/service-name": "service-1",
+					},
 				},
-				Subsets: []v1.EndpointSubset{
+				Endpoints: []discoveryv1.Endpoint{
 					{
-						Addresses: []v1.EndpointAddress{
-							{
-								IP: "1.1.1.1",
-							},
+						Addresses: []string{"1.1.1.1"},
+						Conditions: discoveryv1.EndpointConditions{
+							Ready: func() *bool { b := true; return &b }(),
 						},
 					},
 				},
