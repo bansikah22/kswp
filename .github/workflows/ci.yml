@@ -14,14 +14,14 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v3
         with:
-          go-version: 1.18
+          go-version: 1.25.8
       - name: Install dependencies
         run: go mod download
       - name: Build
         run: go build -v ./...
       - name: Test
         run: go test -v ./...
-      - name: Lint
+      - name: Lint  
         uses: golangci/golangci-lint-action@v3
         with:
           version: v1.49.0
