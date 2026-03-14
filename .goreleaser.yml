@@ -14,11 +14,9 @@ builds:
       - amd64
       - arm64
 archives:
-  - replacements:
-      darwin: Darwin
-      linux: Linux
-      windows: Windows
-      amd64: x86_64
+  - format_overrides:
+      - goos: windows
+        format: zip
 checksum:
   name_template: "checksums.txt"
 snapshot:
@@ -26,7 +24,6 @@ snapshot:
 changelog:
   sort: asc
   filters:
-    first_pull_request: true
     exclude:
       - "^docs:"
       - "^test:"
