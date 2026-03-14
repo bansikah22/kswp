@@ -34,6 +34,7 @@ This document describes the release process for `kswp`. We use [semantic version
     ```bash
     git add .
     git commit -m "Prepare for release vX.Y.Z"
+    
     ```
 
 5.  **Push the release branch:**
