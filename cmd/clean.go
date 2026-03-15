@@ -8,6 +8,7 @@ import (
 
 	"github.com/bansikah22/kswp/internal/cleaner"
 	"github.com/bansikah22/kswp/internal/kubernetes"
+	"github.com/bansikah22/kswp/pkg/models"
 	"github.com/bansikah22/kswp/test/mocks"
 	"github.com/spf13/cobra"
 )
@@ -33,11 +34,60 @@ var cleanCmd = &cobra.Command{
 		}
 
 		label, _ := cmd.Flags().GetString("label")
-		resources, err := ScanResources(client, cleanNamespace, label)
+		name, _ := cmd.Flags().GetString("name")
+		resources, err := ScanResources(client, cleanNamespace, label, name)
 		if err != nil {
 			fmt.Println("Error scanning resources:", err)
 			return
 		}
+
+		all, _ := cmd.Flags().GetBool("all")
+		configmaps, _ := cmd.Flags().GetBool("configmaps")
+		secrets, _ := cmd.Flags().GetBool("secrets")
+		services, _ := cmd.Flags().GetBool("services")
+		replicasets, _ := cmd.Flags().GetBool("replicasets")
+		jobs, _ := cmd.Flags().GetBool("jobs")
+		pods, _ := cmd.Flags().GetBool("pods")
+		pvcs, _ := cmd.Flags().GetBool("pvcs")
+
+		if !all && !configmaps && !secrets && !services && !replicasets && !jobs && !pods && !pvcs {
+			all = true
+		}
+
+		var filteredResources []models.Resource
+		for _, r := range resources {
+			switch r.Kind {
+			case "ConfigMap":
+				if all || configmaps {
+					filteredResources = append(filteredResources, r)
+				}
+			case "Secret":
+				if all || secrets {
+					filteredResources = append(filteredResources, r)
+				}
+			case "Service":
+				if all || services {
+					filteredResources = append(filteredResources, r)
+				}
+			case "ReplicaSet":
+				if all || replicasets {
+					filteredResources = append(filteredResources, r)
+				}
+			case "Job":
+				if all || jobs {
+					filteredResources = append(filteredResources, r)
+				}
+			case "Pod":
+				if all || pods {
+					filteredResources = append(filteredResources, r)
+				}
+			case "PersistentVolumeClaim":
+				if all || pvcs {
+					filteredResources = append(filteredResources, r)
+				}
+			}
+		}
+		resources = filteredResources
 
 		if len(resources) == 0 {
 			fmt.Println("No unused resources found to clean.")
@@ -78,4 +128,13 @@ func init() {
 	cleanCmd.Flags().BoolVar(&cleanDryRun, "dry-run", false, "run in dry-run mode")
 	cleanCmd.Flags().StringVarP(&cleanNamespace, "namespace", "n", "", "specify the namespace to clean")
 	cleanCmd.Flags().String("label", "", "filter resources by label (e.g., 'app=nginx')")
+	cleanCmd.Flags().String("name", "", "filter resources by name")
+	cleanCmd.Flags().Bool("all", false, "clean all unused resources")
+	cleanCmd.Flags().Bool("configmaps", false, "clean unused configmaps")
+	cleanCmd.Flags().Bool("secrets", false, "clean unused secrets")
+	cleanCmd.Flags().Bool("services", false, "clean unused services")
+	cleanCmd.Flags().Bool("replicasets", false, "clean unused replicasets")
+	cleanCmd.Flags().Bool("jobs", false, "clean unused jobs")
+	cleanCmd.Flags().Bool("pods", false, "clean unused pods")
+	cleanCmd.Flags().Bool("pvcs", false, "clean unused persistentvolumeclaims")
 }
