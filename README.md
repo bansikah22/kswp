@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/images/dark-logo.png" alt="kswp logo" width="150"/>
+</p>
+
 # kswp
 [![Release](https://github.com/bansikah22/kswp/actions/workflows/release.yml/badge.svg)](https://github.com/bansikah22/kswp/actions/workflows/release.yml)
 [![CI](https://github.com/bansikah22/kswp/actions/workflows/ci.yml/badge.svg)](https://github.com/bansikah22/kswp/actions/workflows/ci.yml)
