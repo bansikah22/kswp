@@ -23,6 +23,8 @@ func DeleteResource(clientset kubernetes.Interface, resource models.Resource) er
 		err = clientset.AppsV1().ReplicaSets(resource.Namespace).Delete(context.TODO(), resource.Name, v1.DeleteOptions{})
 	case "Job":
 		err = clientset.BatchV1().Jobs(resource.Namespace).Delete(context.TODO(), resource.Name, v1.DeleteOptions{})
+	case "PersistentVolumeClaim":
+		err = clientset.CoreV1().PersistentVolumeClaims(resource.Namespace).Delete(context.TODO(), resource.Name, v1.DeleteOptions{})
 	default:
 		return fmt.Errorf("unknown resource kind: %s", resource.Kind)
 	}

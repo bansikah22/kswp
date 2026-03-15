@@ -38,7 +38,12 @@ var scanCmd = &cobra.Command{
 			fmt.Println("Error getting label flag:", err)
 			return
 		}
-		resources, err := ScanResources(client, namespace, label)
+		name, err := cmd.Flags().GetString("name")
+		if err != nil {
+			fmt.Println("Error getting name flag:", err)
+			return
+		}
+		resources, err := ScanResources(client, namespace, label, name)
 		if err != nil {
 			fmt.Println("Error scanning resources:", err)
 			return
@@ -48,13 +53,16 @@ var scanCmd = &cobra.Command{
 	},
 }
 
-func ScanResources(client kubernetes.Client, namespace string, label string) ([]models.Resource, error) {
+func ScanResources(client kubernetes.Client, namespace string, label string, name string) ([]models.Resource, error) {
 	fmt.Println("Scanning for unused resources...")
 	var resources []models.Resource
 
 	listOptions := metav1.ListOptions{}
 	if label != "" {
 		listOptions.LabelSelector = label
+	}
+	if name != "" {
+		listOptions.FieldSelector = "metadata.name=" + name
 	}
 
 	unusedConfigMaps, err := scanner.GetUnusedConfigMaps(client.Clientset(), namespace, listOptions)
@@ -99,6 +107,12 @@ func ScanResources(client kubernetes.Client, namespace string, label string) ([]
 	}
 	resources = append(resources, completedPods...)
 
+	unusedPVCs, err := scanner.GetUnusedPersistentVolumeClaims(client.Clientset(), namespace, listOptions)
+	if err != nil {
+		return nil, fmt.Errorf("error getting unused pvcs: %w", err)
+	}
+	resources = append(resources, unusedPVCs...)
+
 	return resources, nil
 }
 
@@ -107,4 +121,5 @@ func init() {
 	scanCmd.Flags().BoolVar(&dryRun, "dry-run", false, "run in dry-run mode")
 	scanCmd.Flags().StringVarP(&namespace, "namespace", "n", "", "specify the namespace to scan")
 	scanCmd.Flags().String("label", "", "filter resources by label (e.g., 'app=nginx')")
+	scanCmd.Flags().String("name", "", "filter resources by name")
 }

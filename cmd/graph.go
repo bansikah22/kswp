@@ -31,7 +31,12 @@ var graphCmd = &cobra.Command{
 			fmt.Println("Error getting label flag:", err)
 			return
 		}
-		resources, err := ScanResources(client, namespace, label)
+		name, err := cmd.Flags().GetString("name")
+		if err != nil {
+			fmt.Println("Error getting name flag:", err)
+			return
+		}
+		resources, err := ScanResources(client, namespace, label, name)
 		if err != nil {
 			fmt.Println("Error scanning resources:", err)
 			return
@@ -57,4 +62,5 @@ func init() {
 	graphCmd.Flags().BoolVar(&dryRun, "dry-run", false, "run in dry-run mode")
 	graphCmd.Flags().StringVarP(&namespace, "namespace", "n", "", "specify the namespace to scan")
 	graphCmd.Flags().String("label", "", "filter resources by label (e.g., 'app=nginx')")
+	graphCmd.Flags().String("name", "", "filter resources by name")
 }

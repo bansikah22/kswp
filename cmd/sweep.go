@@ -36,7 +36,8 @@ var sweepCmd = &cobra.Command{
 		}
 
 		label, _ := cmd.Flags().GetString("label")
-		resources, err := ScanResources(client, sweepNamespace, label)
+		name, _ := cmd.Flags().GetString("name")
+		resources, err := ScanResources(client, sweepNamespace, label, name)
 		if err != nil {
 			fmt.Println("Error scanning resources:", err)
 			return
@@ -98,4 +99,5 @@ func init() {
 	sweepCmd.Flags().BoolVar(&sweepDryRun, "dry-run", false, "run in dry-run mode")
 	sweepCmd.Flags().StringVarP(&sweepNamespace, "namespace", "n", "", "specify the namespace to sweep")
 	sweepCmd.Flags().String("label", "", "filter resources by label (e.g., 'app=nginx')")
+	sweepCmd.Flags().String("name", "", "filter resources by name")
 }
