@@ -18,7 +18,7 @@ func GetUnusedPersistentVolumeClaims(clientset kubernetes.Interface, namespace s
 		return nil, fmt.Errorf("failed to list pvcs: %w", err)
 	}
 
-	pods, err := clientset.CoreV1().Pods("").List(context.TODO(), metav1.ListOptions{})
+	pods, err := clientset.CoreV1().Pods(namespace).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to list pods: %w", err)
 	}
@@ -37,6 +37,9 @@ func GetUnusedPersistentVolumeClaims(clientset kubernetes.Interface, namespace s
 		if pvc.Status.Phase == v1.ClaimBound {
 			isUsed := false
 			for _, pod := range pods.Items {
+				if pod.Namespace != pvc.Namespace {
+					continue
+				}
 				for _, volume := range pod.Spec.Volumes {
 					if volume.PersistentVolumeClaim != nil && volume.PersistentVolumeClaim.ClaimName == pvc.Name {
 						isUsed = true
