@@ -10,6 +10,22 @@ image:
 
 schedule: "0 3 * * *"
 
+# Configure the command and arguments for the kswp container.
+# This allows you to customize the behavior of the cronjob.
+#
+# For example, to scan for all unused resources in a specific namespace:
+# args:
+#   - "scan"
+#   - "--namespace"
+#   - "my-namespace"
+#
+# To clean only unused configmaps and secrets:
+# args:
+#   - "clean"
+#   - "--configmaps"
+#   - "--secrets"
+#
+# The default is to sweep all unused resources.
 args:
   - "sweep"
   - "--all"
