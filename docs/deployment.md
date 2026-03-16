@@ -30,7 +30,7 @@ We provide a Docker image for `kswp` on Docker Hub. This is a great way to run `
 **Example usage:**
 
 ```bash
-docker run --rm -v ~/.kube:/root/.kube bansikah22/kswp scan
+docker run --rm -v ~/.kube:/root/.kube bansikah/kswp scan
 ```
 
 **Uninstallation:**
