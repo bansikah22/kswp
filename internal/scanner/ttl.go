@@ -16,6 +16,7 @@ const (
 
 func GetExpiredResources(clientset kubernetes.Interface, namespace string, listOptions metav1.ListOptions) ([]models.Resource, error) {
 	var resources []models.Resource
+	now := time.Now()
 
 	configMaps, err := clientset.CoreV1().ConfigMaps(namespace).List(context.TODO(), listOptions)
 	if err != nil {
@@ -23,7 +24,7 @@ func GetExpiredResources(clientset kubernetes.Interface, namespace string, listO
 	}
 
 	for _, cm := range configMaps.Items {
-		expired, reason := isExpired(cm.ObjectMeta)
+		expired, reason := isExpired(cm.ObjectMeta, now)
 		if expired {
 			resources = append(resources, models.Resource{
 				Name:      cm.Name,
@@ -40,7 +41,7 @@ func GetExpiredResources(clientset kubernetes.Interface, namespace string, listO
 	}
 
 	for _, s := range secrets.Items {
-		expired, reason := isExpired(s.ObjectMeta)
+		expired, reason := isExpired(s.ObjectMeta, now)
 		if expired {
 			resources = append(resources, models.Resource{
 				Name:      s.Name,
@@ -57,7 +58,7 @@ func GetExpiredResources(clientset kubernetes.Interface, namespace string, listO
 	}
 
 	for _, s := range services.Items {
-		expired, reason := isExpired(s.ObjectMeta)
+		expired, reason := isExpired(s.ObjectMeta, now)
 		if expired {
 			resources = append(resources, models.Resource{
 				Name:      s.Name,
@@ -74,7 +75,7 @@ func GetExpiredResources(clientset kubernetes.Interface, namespace string, listO
 	}
 
 	for _, rs := range replicaSets.Items {
-		expired, reason := isExpired(rs.ObjectMeta)
+		expired, reason := isExpired(rs.ObjectMeta, now)
 		if expired {
 			resources = append(resources, models.Resource{
 				Name:      rs.Name,
@@ -91,7 +92,7 @@ func GetExpiredResources(clientset kubernetes.Interface, namespace string, listO
 	}
 
 	for _, j := range jobs.Items {
-		expired, reason := isExpired(j.ObjectMeta)
+		expired, reason := isExpired(j.ObjectMeta, now)
 		if expired {
 			resources = append(resources, models.Resource{
 				Name:      j.Name,
@@ -108,7 +109,7 @@ func GetExpiredResources(clientset kubernetes.Interface, namespace string, listO
 	}
 
 	for _, p := range pods.Items {
-		expired, reason := isExpired(p.ObjectMeta)
+		expired, reason := isExpired(p.ObjectMeta, now)
 		if expired {
 			resources = append(resources, models.Resource{
 				Name:      p.Name,
@@ -125,7 +126,7 @@ func GetExpiredResources(clientset kubernetes.Interface, namespace string, listO
 	}
 
 	for _, pvc := range pvcs.Items {
-		expired, reason := isExpired(pvc.ObjectMeta)
+		expired, reason := isExpired(pvc.ObjectMeta, now)
 		if expired {
 			resources = append(resources, models.Resource{
 				Name:      pvc.Name,
@@ -139,7 +140,7 @@ func GetExpiredResources(clientset kubernetes.Interface, namespace string, listO
 	return resources, nil
 }
 
-func isExpired(meta metav1.ObjectMeta) (bool, string) {
+func isExpired(meta metav1.ObjectMeta, now time.Time) (bool, string) {
 	ttlValue, ok := meta.Annotations[ttlAnnotation]
 	if !ok {
 		return false, ""
@@ -151,7 +152,7 @@ func isExpired(meta metav1.ObjectMeta) (bool, string) {
 	}
 
 	expirationTime := meta.CreationTimestamp.Add(ttl)
-	if time.Now().After(expirationTime) {
+	if now.After(expirationTime) {
 		return true, fmt.Sprintf("Expired based on TTL: %s", ttlValue)
 	}
 
