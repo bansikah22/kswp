@@ -25,6 +25,11 @@ schedule: "0 3 * * *"
 #   - "--configmaps"
 #   - "--secrets"
 #
+# To clean expired resources based on the `cleaner/ttl` annotation:
+# args:
+#   - "clean"
+#   - "--ttl"
+#
 # The default is to sweep all unused resources.
 args:
   - "sweep"

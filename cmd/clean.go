@@ -8,9 +8,11 @@ import (
 
 	"github.com/bansikah22/kswp/internal/cleaner"
 	"github.com/bansikah22/kswp/internal/kubernetes"
+	"github.com/bansikah22/kswp/internal/scanner"
 	"github.com/bansikah22/kswp/pkg/models"
 	"github.com/bansikah22/kswp/test/mocks"
 	"github.com/spf13/cobra"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var cleanDryRun bool
@@ -33,76 +35,95 @@ var cleanCmd = &cobra.Command{
 			}
 		}
 
-		label, _ := cmd.Flags().GetString("label")
-		name, _ := cmd.Flags().GetString("name")
-		resources, err := ScanResources(client, cleanNamespace, label, name)
-		if err != nil {
-			fmt.Println("Error scanning resources:", err)
-			return
+		var resourcesToClean []models.Resource
+
+		// Helper function to get flags, reducing boilerplate.
+		getFlag := func(name string) bool {
+			val, _ := cmd.Flags().GetBool(name)
+			return val
 		}
 
-		all, _ := cmd.Flags().GetBool("all")
-		configmaps, _ := cmd.Flags().GetBool("configmaps")
-		secrets, _ := cmd.Flags().GetBool("secrets")
-		services, _ := cmd.Flags().GetBool("services")
-		replicasets, _ := cmd.Flags().GetBool("replicasets")
-		jobs, _ := cmd.Flags().GetBool("jobs")
-		pods, _ := cmd.Flags().GetBool("pods")
-		pvcs, _ := cmd.Flags().GetBool("pvcs")
+		// Check for expired resources first if the --ttl flag is provided.
+		if getFlag("ttl") {
+			label, _ := cmd.Flags().GetString("label")
+			name, _ := cmd.Flags().GetString("name")
+			listOptions := metav1.ListOptions{}
+			if label != "" {
+				listOptions.LabelSelector = label
+			}
+			if name != "" {
+				listOptions.FieldSelector = "metadata.name=" + name
+			}
 
-		if !all && !configmaps && !secrets && !services && !replicasets && !jobs && !pods && !pvcs {
+			expiredResources, err := scanner.GetExpiredResources(client.Clientset(), cleanNamespace, listOptions)
+			if err != nil {
+				fmt.Println("Error scanning for expired resources:", err)
+				return
+			}
+			resourcesToClean = append(resourcesToClean, expiredResources...)
+		}
+
+		// Check for unused resources based on the provided flags.
+		all := getFlag("all")
+		resourceFlags := map[string]bool{
+			"ConfigMap":             getFlag("configmaps"),
+			"Secret":                getFlag("secrets"),
+			"Service":               getFlag("services"),
+			"ReplicaSet":            getFlag("replicasets"),
+			"Job":                   getFlag("jobs"),
+			"Pod":                   getFlag("pods"),
+			"PersistentVolumeClaim": getFlag("pvcs"),
+		}
+
+		// Determine if we need to scan for unused resources.
+		shouldScanUnused := all
+		for _, v := range resourceFlags {
+			if v {
+				shouldScanUnused = true
+				break
+			}
+		}
+
+		// If no specific resource type is requested, and --ttl is not used, default to all.
+		if !getFlag("ttl") && !shouldScanUnused {
 			all = true
+			shouldScanUnused = true
 		}
 
-		var filteredResources []models.Resource
-		for _, r := range resources {
-			switch r.Kind {
-			case "ConfigMap":
-				if all || configmaps {
-					filteredResources = append(filteredResources, r)
-				}
-			case "Secret":
-				if all || secrets {
-					filteredResources = append(filteredResources, r)
-				}
-			case "Service":
-				if all || services {
-					filteredResources = append(filteredResources, r)
-				}
-			case "ReplicaSet":
-				if all || replicasets {
-					filteredResources = append(filteredResources, r)
-				}
-			case "Job":
-				if all || jobs {
-					filteredResources = append(filteredResources, r)
-				}
-			case "Pod":
-				if all || pods {
-					filteredResources = append(filteredResources, r)
-				}
-			case "PersistentVolumeClaim":
-				if all || pvcs {
-					filteredResources = append(filteredResources, r)
+		if shouldScanUnused {
+			label, _ := cmd.Flags().GetString("label")
+			name, _ := cmd.Flags().GetString("name")
+			unusedResources, err := ScanResources(client, cleanNamespace, label, name)
+			if err != nil {
+				fmt.Println("Error scanning for unused resources:", err)
+				return
+			}
+
+			// Filter the unused resources based on the provided flags.
+			for _, r := range unusedResources {
+				if all || resourceFlags[r.Kind] {
+					resourcesToClean = append(resourcesToClean, r)
 				}
 			}
 		}
-		resources = filteredResources
 
-		if len(resources) == 0 {
-			fmt.Println("No unused resources found to clean.")
+		if len(resourcesToClean) == 0 {
+			fmt.Println("No resources found to clean.")
 			return
 		}
 
+		// De-duplicate resources in case a resource is both expired and unused.
+		resourcesToClean = deduplicateResources(resourcesToClean)
+
 		if cleanDryRun {
 			fmt.Println("Resources that would be deleted:")
-			for _, res := range resources {
+			for _, res := range resourcesToClean {
 				fmt.Printf("- %s/%s (%s)\n", res.Namespace, res.Name, res.Kind)
 			}
 			return
 		}
 
-		fmt.Printf("Delete %d resources? (y/N) ", len(resources))
+		fmt.Printf("Delete %d resources? (y/N) ", len(resourcesToClean))
 		reader := bufio.NewReader(os.Stdin)
 		input, err := reader.ReadString('\n')
 		if err != nil {
@@ -114,13 +135,26 @@ var cleanCmd = &cobra.Command{
 			return
 		}
 
-		for _, res := range resources {
+		for _, res := range resourcesToClean {
 			err := cleaner.DeleteResource(client.Clientset(), res)
 			if err != nil {
 				fmt.Printf("Error deleting %s %s/%s: %s\n", res.Kind, res.Namespace, res.Name, err)
 			}
 		}
 	},
+}
+
+func deduplicateResources(resources []models.Resource) []models.Resource {
+	seen := make(map[string]bool)
+	result := []models.Resource{}
+	for _, r := range resources {
+		key := fmt.Sprintf("%s/%s/%s", r.Kind, r.Namespace, r.Name)
+		if _, ok := seen[key]; !ok {
+			seen[key] = true
+			result = append(result, r)
+		}
+	}
+	return result
 }
 
 func init() {
@@ -137,4 +171,5 @@ func init() {
 	cleanCmd.Flags().Bool("jobs", false, "clean unused jobs")
 	cleanCmd.Flags().Bool("pods", false, "clean unused pods")
 	cleanCmd.Flags().Bool("pvcs", false, "clean unused persistentvolumeclaims")
+	cleanCmd.Flags().Bool("ttl", false, "clean expired resources based on the cleaner/ttl annotation")
 }
