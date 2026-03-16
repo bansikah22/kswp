@@ -18,7 +18,7 @@ Scan for unused resources.
 ## `kswp clean`
 
 Clean unused resources.
-
+Add support for TTL annotations, e.g., cleaner/ttl: 24h.
 You can specify which resource types to clean by using the following flags. If no flags are provided, all unused resources will be cleaned.
 
 - `--all`: clean all unused resources (default)
@@ -29,6 +29,7 @@ You can specify which resource types to clean by using the following flags. If n
 - `--jobs`: clean unused jobs
 - `--pods`: clean unused pods
 - `--pvcs`: clean unused persistentvolumeclaims
+- `--ttl`: clean expired resources based on the cleaner/ttl annotation
 
 **Examples:**
 
