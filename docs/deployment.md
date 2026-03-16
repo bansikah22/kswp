@@ -11,9 +11,16 @@ You can download the latest binary for your system from the [GitHub Releases](ht
 **Example installation on Linux:**
 
 ```bash
-wget https://github.com/bansikah22/kswp/releases/latest/download/kswp-linux-amd64
-chmod +x kswp-linux-amd64
-sudo mv kswp-linux-amd64 /usr/local/bin/kswp
+wget https://github.com/bansikah22/kswp/releases/download/v0.1.0/kswp_0.1.0_linux_amd64.tar.gz
+tar -xvf kswp_0.1.0_linux_amd64.tar.gz
+chmod +x kswp
+sudo mv kswp /usr/local/bin/kswp
+```
+
+**Uninstallation:**
+
+```bash
+sudo rm /usr/local/bin/kswp
 ```
 
 ## 2. Docker Container
@@ -25,6 +32,10 @@ We provide a Docker image for `kswp` on Docker Hub. This is a great way to run `
 ```bash
 docker run --rm -v ~/.kube:/root/.kube bansikah22/kswp scan
 ```
+
+**Uninstallation:**
+
+Since the Docker container is run with the `--rm` flag, it is automatically removed after execution. There are no artifacts to uninstall.
 
 ## 3. kubectl Plugin (Krew)
 
@@ -42,6 +53,12 @@ kubectl krew install kswp
 kubectl kswp scan
 ```
 
+**Uninstallation:**
+
+```bash
+kubectl krew uninstall kswp
+```
+
 ## 4. Homebrew
 
 If you are on macOS or Linux, you can install `kswp` using [Homebrew](https://brew.sh/).
@@ -53,6 +70,12 @@ brew tap bansikah22/kswp
 brew install kswp
 ```
 
+**Uninstallation:**
+
+```bash
+brew uninstall kswp
+```
+
 ## 5. Helm Chart
 
 You can deploy `kswp` as a CronJob in your Kubernetes cluster using our Helm chart. This is useful for running scheduled cleanups of your cluster.
@@ -62,6 +85,12 @@ You can deploy `kswp` as a CronJob in your Kubernetes cluster using our Helm cha
 ```bash
 helm repo add kswp https://bansikah22.github.io/kswp/
 helm install kswp-cleaner kswp/kswp
+```
+
+**Uninstallation:**
+
+```bash
+helm uninstall kswp-cleaner
 ```
 
 ## 7. Apply a Lua script
