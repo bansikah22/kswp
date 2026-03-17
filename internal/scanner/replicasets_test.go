@@ -12,6 +12,7 @@ func TestGetOldReplicaSets(t *testing.T) {
 	client := mocks.NewMockClient()
 	oldReplicaSets, err := GetOldReplicaSets(client.Clientset(), "", metav1.ListOptions{})
 	assert.NoError(t, err)
-	assert.Len(t, oldReplicaSets, 1)
-	assert.Equal(t, "rs-2", oldReplicaSets[0].Name)
+	assert.Len(t, oldReplicaSets, 2)
+	assert.Contains(t, []string{oldReplicaSets[0].Name, oldReplicaSets[1].Name}, "rs-2")
+	assert.Contains(t, []string{oldReplicaSets[0].Name, oldReplicaSets[1].Name}, "rs-3")
 }

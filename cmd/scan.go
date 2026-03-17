@@ -22,6 +22,8 @@ var scanCmd = &cobra.Command{
 	Short: "Scan for unused resources",
 	Long:  `Scan for unused resources in your Kubernetes cluster.`,
 	Run: func(cmd *cobra.Command, args []string) {
+		dryRun, _ := cmd.Flags().GetBool("dry-run")
+
 		var client kubernetes.Client
 		var err error
 		if dryRun {

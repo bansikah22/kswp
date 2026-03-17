@@ -9,6 +9,7 @@ import (
 
 	"github.com/bansikah22/kswp/internal/cleaner"
 	"github.com/bansikah22/kswp/internal/kubernetes"
+	"github.com/bansikah22/kswp/internal/report"
 	"github.com/bansikah22/kswp/pkg/models"
 	"github.com/bansikah22/kswp/test/mocks"
 	"github.com/spf13/cobra"
@@ -68,9 +69,7 @@ var sweepCmd = &cobra.Command{
 		}
 
 		fmt.Println("Resources that will be deleted:")
-		for _, res := range resources {
-			fmt.Printf("- %s/%s (%s)\n", res.Namespace, res.Name, res.Kind)
-		}
+		report.PrintResourceTableCompact(resources)
 
 		fmt.Printf("Delete %d resources? (y/N) ", len(resources))
 		reader := bufio.NewReader(os.Stdin)

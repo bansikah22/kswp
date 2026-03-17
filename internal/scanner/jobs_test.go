@@ -13,6 +13,7 @@ func TestGetCompletedJobs(t *testing.T) {
 	client := mocks.NewMockClient()
 	completedJobs, err := GetCompletedJobs(client.Clientset(), 24*time.Hour, "", metav1.ListOptions{})
 	assert.NoError(t, err)
-	assert.Len(t, completedJobs, 1)
-	assert.Equal(t, "job-1", completedJobs[0].Name)
+	assert.Len(t, completedJobs, 2)
+	assert.Contains(t, []string{completedJobs[0].Name, completedJobs[1].Name}, "job-1")
+	assert.Contains(t, []string{completedJobs[0].Name, completedJobs[1].Name}, "job-3")
 }

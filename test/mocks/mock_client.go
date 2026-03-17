@@ -25,6 +25,11 @@ func NewMockClient() kubernetes.Client {
 	return &MockClient{
 		//nolint:staticcheck
 		clientset: fake.NewSimpleClientset(
+			&v1.Namespace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "default",
+				},
+			},
 			&v1.Pod{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "pod-1",
@@ -167,6 +172,48 @@ func NewMockClient() kubernetes.Client {
 				Status: batchv1.JobStatus{
 					Succeeded:      1,
 					CompletionTime: &metav1.Time{Time: time.Now()},
+				},
+			},
+			&v1.ConfigMap{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "cm-3",
+					Namespace: "default",
+				},
+			},
+			&v1.Secret{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "secret-3",
+					Namespace: "default",
+				},
+			},
+			&v1.Service{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "service-3",
+					Namespace: "default",
+				},
+				Spec: v1.ServiceSpec{
+					Selector: map[string]string{
+						"app": "app-3",
+					},
+				},
+			},
+			&appsv1.ReplicaSet{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "rs-3",
+					Namespace: "default",
+				},
+				Spec: appsv1.ReplicaSetSpec{
+					Replicas: func() *int32 { r := int32(0); return &r }(),
+				},
+			},
+			&batchv1.Job{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "job-3",
+					Namespace: "default",
+				},
+				Status: batchv1.JobStatus{
+					Succeeded:      1,
+					CompletionTime: &metav1.Time{Time: time.Now().Add(-48 * time.Hour)},
 				},
 			},
 		),
