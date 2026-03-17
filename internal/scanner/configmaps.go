@@ -53,6 +53,9 @@ func GetUnusedConfigMaps(clientset kubernetes.Interface, namespace string, listO
 		return nil, err
 	}
 	for _, cm := range configmaps {
+		if ShouldExclude(cm.ObjectMeta) {
+			continue
+		}
 		used, reason := IsConfigMapUsed(cm, pods)
 		if !used {
 			unusedConfigMaps = append(unusedConfigMaps, models.Resource{

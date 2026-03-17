@@ -39,6 +39,9 @@ func GetCompletedJobs(clientset kubernetes.Interface, threshold time.Duration, n
 		return nil, err
 	}
 	for _, job := range jobs {
+		if ShouldExclude(job.ObjectMeta) {
+			continue
+		}
 		completed, reason := IsJobCompleted(job, threshold)
 		if completed {
 			completedJobs = append(completedJobs, models.Resource{

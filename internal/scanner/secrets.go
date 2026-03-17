@@ -53,6 +53,9 @@ func GetUnusedSecrets(clientset kubernetes.Interface, namespace string, listOpti
 		return nil, err
 	}
 	for _, secret := range secrets {
+		if ShouldExclude(secret.ObjectMeta) {
+			continue
+		}
 		used, reason := IsSecretUsed(secret, pods)
 		if !used {
 			unusedSecrets = append(unusedSecrets, models.Resource{

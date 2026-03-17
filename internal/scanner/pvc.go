@@ -24,6 +24,10 @@ func GetUnusedPersistentVolumeClaims(clientset kubernetes.Interface, namespace s
 	}
 
 	for _, pvc := range pvcs.Items {
+		if ShouldExclude(pvc.ObjectMeta) {
+			continue
+		}
+
 		if pvc.Status.Phase == v1.ClaimPending || pvc.Status.Phase == v1.ClaimLost {
 			resources = append(resources, models.Resource{
 				Name:      pvc.Name,
