@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/bansikah22/kswp/internal/analyzer"
 	"github.com/bansikah22/kswp/internal/kubernetes"
@@ -36,7 +37,21 @@ var graphCmd = &cobra.Command{
 			fmt.Println("Error getting name flag:", err)
 			return
 		}
-		resources, err := ScanResources(client, namespace, label, name)
+		excludeNamespacesStr, err := cmd.Flags().GetString("exclude-namespaces")
+		if err != nil {
+			fmt.Println("Error getting exclude-namespaces flag:", err)
+			return
+		}
+
+		var excludedNamespaces []string
+		if excludeNamespacesStr != "" {
+			excludedNamespaces = strings.Split(excludeNamespacesStr, ",")
+			for i := range excludedNamespaces {
+				excludedNamespaces[i] = strings.TrimSpace(excludedNamespaces[i])
+			}
+		}
+
+		resources, err := ScanResources(client, namespace, label, name, excludedNamespaces)
 		if err != nil {
 			fmt.Println("Error scanning resources:", err)
 			return
@@ -61,6 +76,7 @@ func init() {
 	rootCmd.AddCommand(graphCmd)
 	graphCmd.Flags().BoolVar(&dryRun, "dry-run", false, "run in dry-run mode")
 	graphCmd.Flags().StringVarP(&namespace, "namespace", "n", "", "specify the namespace to scan")
+	graphCmd.Flags().String("exclude-namespaces", "", "comma-separated list of namespaces to exclude from scanning")
 	graphCmd.Flags().String("label", "", "filter resources by label (e.g., 'app=nginx')")
 	graphCmd.Flags().String("name", "", "filter resources by name")
 }

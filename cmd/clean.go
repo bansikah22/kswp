@@ -93,7 +93,17 @@ var cleanCmd = &cobra.Command{
 		if shouldScanUnused {
 			label, _ := cmd.Flags().GetString("label")
 			name, _ := cmd.Flags().GetString("name")
-			unusedResources, err := ScanResources(client, cleanNamespace, label, name)
+			excludeNamespacesStr, _ := cmd.Flags().GetString("exclude-namespaces")
+
+			var excludedNamespaces []string
+			if excludeNamespacesStr != "" {
+				excludedNamespaces = strings.Split(excludeNamespacesStr, ",")
+				for i := range excludedNamespaces {
+					excludedNamespaces[i] = strings.TrimSpace(excludedNamespaces[i])
+				}
+			}
+
+			unusedResources, err := ScanResources(client, cleanNamespace, label, name, excludedNamespaces)
 			if err != nil {
 				fmt.Println("Error scanning for unused resources:", err)
 				return
@@ -161,6 +171,7 @@ func init() {
 	rootCmd.AddCommand(cleanCmd)
 	cleanCmd.Flags().BoolVar(&cleanDryRun, "dry-run", false, "run in dry-run mode")
 	cleanCmd.Flags().StringVarP(&cleanNamespace, "namespace", "n", "", "specify the namespace to clean")
+	cleanCmd.Flags().String("exclude-namespaces", "", "comma-separated list of namespaces to exclude from cleaning")
 	cleanCmd.Flags().String("label", "", "filter resources by label (e.g., 'app=nginx')")
 	cleanCmd.Flags().String("name", "", "filter resources by name")
 	cleanCmd.Flags().Bool("all", false, "clean all unused resources")

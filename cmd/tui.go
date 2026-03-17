@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/bansikah22/kswp/internal/kubernetes"
 	"github.com/bansikah22/kswp/internal/tui"
@@ -30,7 +31,17 @@ var tuiCmd = &cobra.Command{
 
 		label, _ := cmd.Flags().GetString("label")
 		name, _ := cmd.Flags().GetString("name")
-		resources, err := ScanResources(client, tuiNamespace, label, name)
+		excludeNamespacesStr, _ := cmd.Flags().GetString("exclude-namespaces")
+
+		var excludedNamespaces []string
+		if excludeNamespacesStr != "" {
+			excludedNamespaces = strings.Split(excludeNamespacesStr, ",")
+			for i := range excludedNamespaces {
+				excludedNamespaces[i] = strings.TrimSpace(excludedNamespaces[i])
+			}
+		}
+
+		resources, err := ScanResources(client, tuiNamespace, label, name, excludedNamespaces)
 		if err != nil {
 			fmt.Println("Error scanning resources:", err)
 			return
@@ -44,6 +55,7 @@ func init() {
 	rootCmd.AddCommand(tuiCmd)
 	tuiCmd.Flags().BoolVar(&dryRun, "dry-run", false, "run in dry-run mode")
 	tuiCmd.Flags().StringVarP(&tuiNamespace, "namespace", "n", "", "specify the namespace to scan")
+	tuiCmd.Flags().String("exclude-namespaces", "", "comma-separated list of namespaces to exclude from scanning")
 	tuiCmd.Flags().String("label", "", "filter resources by label (e.g., 'app=nginx')")
 	tuiCmd.Flags().String("name", "", "filter resources by name")
 }
