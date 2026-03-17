@@ -21,6 +21,7 @@ For detailed installation instructions, please see the [deployment documentation
 - **Dependency Graph**: Visualize the dependencies between your Kubernetes resources.
 - **Resource Exclusion**: Protect critical resources from scanning and cleanup using the `kswp.io/exclude` annotation.
 - **Namespace Filtering**: Target specific namespaces or exclude system-critical ones like `kube-system`.
+- **CLI Branding**: Stylized ASCII banner with version information on startup.
 
 For a full list of commands and their flags, see the [command documentation](docs/commands.md).
 
