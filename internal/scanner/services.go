@@ -54,6 +54,9 @@ func GetOrphanServices(clientset kubernetes.Interface, namespace string, listOpt
 		return nil, err
 	}
 	for _, service := range services {
+		if ShouldExclude(service.ObjectMeta) {
+			continue
+		}
 		orphan, reason := IsServiceOrphan(service, endpointSlices)
 		if orphan {
 			orphanServices = append(orphanServices, models.Resource{

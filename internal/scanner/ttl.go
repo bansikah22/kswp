@@ -24,6 +24,9 @@ func GetExpiredResources(clientset kubernetes.Interface, namespace string, listO
 	}
 
 	for _, cm := range configMaps.Items {
+		if ShouldExclude(cm.ObjectMeta) {
+			continue
+		}
 		expired, reason := isExpired(cm.ObjectMeta, now)
 		if expired {
 			resources = append(resources, models.Resource{
@@ -41,6 +44,9 @@ func GetExpiredResources(clientset kubernetes.Interface, namespace string, listO
 	}
 
 	for _, s := range secrets.Items {
+		if ShouldExclude(s.ObjectMeta) {
+			continue
+		}
 		expired, reason := isExpired(s.ObjectMeta, now)
 		if expired {
 			resources = append(resources, models.Resource{
@@ -58,6 +64,9 @@ func GetExpiredResources(clientset kubernetes.Interface, namespace string, listO
 	}
 
 	for _, s := range services.Items {
+		if ShouldExclude(s.ObjectMeta) {
+			continue
+		}
 		expired, reason := isExpired(s.ObjectMeta, now)
 		if expired {
 			resources = append(resources, models.Resource{
@@ -75,6 +84,9 @@ func GetExpiredResources(clientset kubernetes.Interface, namespace string, listO
 	}
 
 	for _, rs := range replicaSets.Items {
+		if ShouldExclude(rs.ObjectMeta) {
+			continue
+		}
 		expired, reason := isExpired(rs.ObjectMeta, now)
 		if expired {
 			resources = append(resources, models.Resource{
@@ -92,6 +104,9 @@ func GetExpiredResources(clientset kubernetes.Interface, namespace string, listO
 	}
 
 	for _, j := range jobs.Items {
+		if ShouldExclude(j.ObjectMeta) {
+			continue
+		}
 		expired, reason := isExpired(j.ObjectMeta, now)
 		if expired {
 			resources = append(resources, models.Resource{
@@ -109,6 +124,9 @@ func GetExpiredResources(clientset kubernetes.Interface, namespace string, listO
 	}
 
 	for _, p := range pods.Items {
+		if ShouldExclude(p.ObjectMeta) {
+			continue
+		}
 		expired, reason := isExpired(p.ObjectMeta, now)
 		if expired {
 			resources = append(resources, models.Resource{
@@ -126,6 +144,9 @@ func GetExpiredResources(clientset kubernetes.Interface, namespace string, listO
 	}
 
 	for _, pvc := range pvcs.Items {
+		if ShouldExclude(pvc.ObjectMeta) {
+			continue
+		}
 		expired, reason := isExpired(pvc.ObjectMeta, now)
 		if expired {
 			resources = append(resources, models.Resource{

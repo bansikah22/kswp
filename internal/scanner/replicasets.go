@@ -54,6 +54,9 @@ func GetOldReplicaSets(clientset kubernetes.Interface, namespace string, listOpt
 		return nil, err
 	}
 	for _, rs := range replicasets {
+		if ShouldExclude(rs.ObjectMeta) {
+			continue
+		}
 		old, reason := IsReplicaSetOld(rs, deployments)
 		if old {
 			oldReplicaSets = append(oldReplicaSets, models.Resource{

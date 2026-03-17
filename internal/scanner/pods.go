@@ -26,6 +26,9 @@ func GetFailedPods(clientset kubernetes.Interface, namespace string, listOptions
 		return nil, err
 	}
 	for _, pod := range pods {
+		if ShouldExclude(pod.ObjectMeta) {
+			continue
+		}
 		if pod.Status.Phase == v1.PodFailed {
 			failedPods = append(failedPods, models.Resource{
 				Name:      pod.Name,
@@ -46,6 +49,9 @@ func GetCompletedPods(clientset kubernetes.Interface, threshold time.Duration, n
 		return nil, err
 	}
 	for _, pod := range pods {
+		if ShouldExclude(pod.ObjectMeta) {
+			continue
+		}
 		if pod.Status.Phase == v1.PodSucceeded {
 			if pod.Status.StartTime != nil {
 				if pod.Status.StartTime.Time.Before(time.Now().Add(-threshold)) {
