@@ -11,6 +11,10 @@ These flags are available for all commands:
 - `--label`: filter resources by label (e.g., 'app=nginx')
 - `--name`: filter resources by name
 
+## Resource Exclusion
+
+You can protect critical resources from being scanned or deleted by marking them with the `kswp.io/exclude: "true"` annotation. See [Resource Exclusion via Annotations](resource-exclusion.md) for detailed information and examples.
+
 ## `kswp scan`
 
 Scan for unused resources.

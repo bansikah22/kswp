@@ -19,6 +19,7 @@ For detailed installation instructions, please see the [deployment documentation
 - **Interactive UI**: A terminal UI to visualize and manage unused resources.
 - **Cluster Hygiene Score**: Get a score that represents the health of your cluster.
 - **Dependency Graph**: Visualize the dependencies between your Kubernetes resources.
+- **Resource Exclusion**: Protect critical resources from scanning and cleanup using the `kswp.io/exclude` annotation.
 
 For a full list of commands and their flags, see the [command documentation](docs/commands.md).
 
