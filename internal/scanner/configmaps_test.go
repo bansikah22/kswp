@@ -12,6 +12,7 @@ func TestGetUnusedConfigMaps(t *testing.T) {
 	client := mocks.NewMockClient()
 	unusedConfigMaps, err := GetUnusedConfigMaps(client.Clientset(), "", metav1.ListOptions{})
 	assert.NoError(t, err)
-	assert.Len(t, unusedConfigMaps, 1)
-	assert.Equal(t, "cm-2", unusedConfigMaps[0].Name)
+	assert.Len(t, unusedConfigMaps, 2)
+	assert.Contains(t, []string{unusedConfigMaps[0].Name, unusedConfigMaps[1].Name}, "cm-2")
+	assert.Contains(t, []string{unusedConfigMaps[0].Name, unusedConfigMaps[1].Name}, "cm-3")
 }

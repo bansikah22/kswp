@@ -12,6 +12,7 @@ func TestGetOrphanServices(t *testing.T) {
 	client := mocks.NewMockClient()
 	orphanServices, err := GetOrphanServices(client.Clientset(), "", metav1.ListOptions{})
 	assert.NoError(t, err)
-	assert.Len(t, orphanServices, 1)
-	assert.Equal(t, "service-2", orphanServices[0].Name)
+	assert.Len(t, orphanServices, 2)
+	assert.Contains(t, []string{orphanServices[0].Name, orphanServices[1].Name}, "service-2")
+	assert.Contains(t, []string{orphanServices[0].Name, orphanServices[1].Name}, "service-3")
 }
