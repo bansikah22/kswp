@@ -8,7 +8,6 @@ const (
 	KubeSystemNamespace    = "kube-system"
 	KubePublicNamespace    = "kube-public"
 	KubeNodeLeaseNamespace = "kube-node-lease"
-	KubeApiserverNamespace = "kube-apiserver"
 )
 
 var DefaultExcludedNamespaces = []string{

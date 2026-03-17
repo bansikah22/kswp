@@ -100,58 +100,58 @@ func scanNamespaceResources(client kubernetes.Client, ns string, listOptions met
 	unusedConfigMaps, err := scanner.GetUnusedConfigMaps(client.Clientset(), ns, listOptions)
 	if err != nil {
 		fmt.Printf("Error getting unused configmaps: %v\n", err)
-		return
+	} else {
+		*resources = append(*resources, unusedConfigMaps...)
 	}
-	*resources = append(*resources, unusedConfigMaps...)
 
 	unusedSecrets, err := scanner.GetUnusedSecrets(client.Clientset(), ns, listOptions)
 	if err != nil {
 		fmt.Printf("Error getting unused secrets: %v\n", err)
-		return
+	} else {
+		*resources = append(*resources, unusedSecrets...)
 	}
-	*resources = append(*resources, unusedSecrets...)
 
 	orphanServices, err := scanner.GetOrphanServices(client.Clientset(), ns, listOptions)
 	if err != nil {
 		fmt.Printf("Error getting orphan services: %v\n", err)
-		return
+	} else {
+		*resources = append(*resources, orphanServices...)
 	}
-	*resources = append(*resources, orphanServices...)
 
 	oldReplicaSets, err := scanner.GetOldReplicaSets(client.Clientset(), ns, listOptions)
 	if err != nil {
 		fmt.Printf("Error getting old replicasets: %v\n", err)
-		return
+	} else {
+		*resources = append(*resources, oldReplicaSets...)
 	}
-	*resources = append(*resources, oldReplicaSets...)
 
 	completedJobs, err := scanner.GetCompletedJobs(client.Clientset(), 24*time.Hour, ns, listOptions)
 	if err != nil {
 		fmt.Printf("Error getting completed jobs: %v\n", err)
-		return
+	} else {
+		*resources = append(*resources, completedJobs...)
 	}
-	*resources = append(*resources, completedJobs...)
 
 	failedPods, err := scanner.GetFailedPods(client.Clientset(), ns, listOptions)
 	if err != nil {
 		fmt.Printf("Error getting failed pods: %v\n", err)
-		return
+	} else {
+		*resources = append(*resources, failedPods...)
 	}
-	*resources = append(*resources, failedPods...)
 
 	completedPods, err := scanner.GetCompletedPods(client.Clientset(), 24*time.Hour, ns, listOptions)
 	if err != nil {
 		fmt.Printf("Error getting completed pods: %v\n", err)
-		return
+	} else {
+		*resources = append(*resources, completedPods...)
 	}
-	*resources = append(*resources, completedPods...)
 
 	unusedPVCs, err := scanner.GetUnusedPersistentVolumeClaims(client.Clientset(), ns, listOptions)
 	if err != nil {
 		fmt.Printf("Error getting unused pvcs: %v\n", err)
-		return
+	} else {
+		*resources = append(*resources, unusedPVCs...)
 	}
-	*resources = append(*resources, unusedPVCs...)
 }
 
 func init() {
