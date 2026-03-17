@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/bansikah22/kswp/internal/kubernetes"
@@ -43,7 +44,21 @@ var scanCmd = &cobra.Command{
 			fmt.Println("Error getting name flag:", err)
 			return
 		}
-		resources, err := ScanResources(client, namespace, label, name)
+		excludeNamespacesStr, err := cmd.Flags().GetString("exclude-namespaces")
+		if err != nil {
+			fmt.Println("Error getting exclude-namespaces flag:", err)
+			return
+		}
+
+		var excludedNamespaces []string
+		if excludeNamespacesStr != "" {
+			excludedNamespaces = strings.Split(excludeNamespacesStr, ",")
+			for i := range excludedNamespaces {
+				excludedNamespaces[i] = strings.TrimSpace(excludedNamespaces[i])
+			}
+		}
+
+		resources, err := ScanResources(client, namespace, label, name, excludedNamespaces)
 		if err != nil {
 			fmt.Println("Error scanning resources:", err)
 			return
@@ -53,9 +68,18 @@ var scanCmd = &cobra.Command{
 	},
 }
 
-func ScanResources(client kubernetes.Client, namespace string, label string, name string) ([]models.Resource, error) {
+func ScanResources(client kubernetes.Client, namespace string, label string, name string, excludedNamespaces []string) ([]models.Resource, error) {
 	fmt.Println("Scanning for unused resources...")
 	var resources []models.Resource
+
+	namespacesToScan, err := scanner.GetNamespacesToScan(client.Clientset(), namespace, excludedNamespaces)
+	if err != nil {
+		return nil, fmt.Errorf("error determining namespaces to scan: %w", err)
+	}
+
+	if len(namespacesToScan) == 0 {
+		return resources, nil
+	}
 
 	listOptions := metav1.ListOptions{}
 	if label != "" {
@@ -65,61 +89,76 @@ func ScanResources(client kubernetes.Client, namespace string, label string, nam
 		listOptions.FieldSelector = "metadata.name=" + name
 	}
 
-	unusedConfigMaps, err := scanner.GetUnusedConfigMaps(client.Clientset(), namespace, listOptions)
-	if err != nil {
-		return nil, fmt.Errorf("error getting unused configmaps: %w", err)
+	for _, ns := range namespacesToScan {
+		scanNamespaceResources(client, ns, listOptions, &resources)
 	}
-	resources = append(resources, unusedConfigMaps...)
-
-	unusedSecrets, err := scanner.GetUnusedSecrets(client.Clientset(), namespace, listOptions)
-	if err != nil {
-		return nil, fmt.Errorf("error getting unused secrets: %w", err)
-	}
-	resources = append(resources, unusedSecrets...)
-
-	orphanServices, err := scanner.GetOrphanServices(client.Clientset(), namespace, listOptions)
-	if err != nil {
-		return nil, fmt.Errorf("error getting orphan services: %w", err)
-	}
-	resources = append(resources, orphanServices...)
-
-	oldReplicaSets, err := scanner.GetOldReplicaSets(client.Clientset(), namespace, listOptions)
-	if err != nil {
-		return nil, fmt.Errorf("error getting old replicasets: %w", err)
-	}
-	resources = append(resources, oldReplicaSets...)
-
-	completedJobs, err := scanner.GetCompletedJobs(client.Clientset(), 24*time.Hour, namespace, listOptions)
-	if err != nil {
-		return nil, fmt.Errorf("error getting completed jobs: %w", err)
-	}
-	resources = append(resources, completedJobs...)
-
-	failedPods, err := scanner.GetFailedPods(client.Clientset(), namespace, listOptions)
-	if err != nil {
-		return nil, fmt.Errorf("error getting failed pods: %w", err)
-	}
-	resources = append(resources, failedPods...)
-
-	completedPods, err := scanner.GetCompletedPods(client.Clientset(), 24*time.Hour, namespace, listOptions)
-	if err != nil {
-		return nil, fmt.Errorf("error getting completed pods: %w", err)
-	}
-	resources = append(resources, completedPods...)
-
-	unusedPVCs, err := scanner.GetUnusedPersistentVolumeClaims(client.Clientset(), namespace, listOptions)
-	if err != nil {
-		return nil, fmt.Errorf("error getting unused pvcs: %w", err)
-	}
-	resources = append(resources, unusedPVCs...)
 
 	return resources, nil
+}
+
+func scanNamespaceResources(client kubernetes.Client, ns string, listOptions metav1.ListOptions, resources *[]models.Resource) {
+	unusedConfigMaps, err := scanner.GetUnusedConfigMaps(client.Clientset(), ns, listOptions)
+	if err != nil {
+		fmt.Printf("Error getting unused configmaps: %v\n", err)
+	} else {
+		*resources = append(*resources, unusedConfigMaps...)
+	}
+
+	unusedSecrets, err := scanner.GetUnusedSecrets(client.Clientset(), ns, listOptions)
+	if err != nil {
+		fmt.Printf("Error getting unused secrets: %v\n", err)
+	} else {
+		*resources = append(*resources, unusedSecrets...)
+	}
+
+	orphanServices, err := scanner.GetOrphanServices(client.Clientset(), ns, listOptions)
+	if err != nil {
+		fmt.Printf("Error getting orphan services: %v\n", err)
+	} else {
+		*resources = append(*resources, orphanServices...)
+	}
+
+	oldReplicaSets, err := scanner.GetOldReplicaSets(client.Clientset(), ns, listOptions)
+	if err != nil {
+		fmt.Printf("Error getting old replicasets: %v\n", err)
+	} else {
+		*resources = append(*resources, oldReplicaSets...)
+	}
+
+	completedJobs, err := scanner.GetCompletedJobs(client.Clientset(), 24*time.Hour, ns, listOptions)
+	if err != nil {
+		fmt.Printf("Error getting completed jobs: %v\n", err)
+	} else {
+		*resources = append(*resources, completedJobs...)
+	}
+
+	failedPods, err := scanner.GetFailedPods(client.Clientset(), ns, listOptions)
+	if err != nil {
+		fmt.Printf("Error getting failed pods: %v\n", err)
+	} else {
+		*resources = append(*resources, failedPods...)
+	}
+
+	completedPods, err := scanner.GetCompletedPods(client.Clientset(), 24*time.Hour, ns, listOptions)
+	if err != nil {
+		fmt.Printf("Error getting completed pods: %v\n", err)
+	} else {
+		*resources = append(*resources, completedPods...)
+	}
+
+	unusedPVCs, err := scanner.GetUnusedPersistentVolumeClaims(client.Clientset(), ns, listOptions)
+	if err != nil {
+		fmt.Printf("Error getting unused pvcs: %v\n", err)
+	} else {
+		*resources = append(*resources, unusedPVCs...)
+	}
 }
 
 func init() {
 	rootCmd.AddCommand(scanCmd)
 	scanCmd.Flags().BoolVar(&dryRun, "dry-run", false, "run in dry-run mode")
 	scanCmd.Flags().StringVarP(&namespace, "namespace", "n", "", "specify the namespace to scan")
+	scanCmd.Flags().String("exclude-namespaces", "", "comma-separated list of namespaces to exclude from scanning")
 	scanCmd.Flags().String("label", "", "filter resources by label (e.g., 'app=nginx')")
 	scanCmd.Flags().String("name", "", "filter resources by name")
 }

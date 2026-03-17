@@ -8,12 +8,31 @@ These flags are available for all commands:
 
 - `--dry-run`: run in dry-run mode
 - `-n, --namespace`: specify the namespace to scan
+- `--exclude-namespaces`: comma-separated list of namespaces to exclude (e.g., `kube-system,kube-public`)
 - `--label`: filter resources by label (e.g., 'app=nginx')
 - `--name`: filter resources by name
 
 ## Resource Exclusion
 
 You can protect critical resources from being scanned or deleted by marking them with the `kswp.io/exclude: "true"` annotation. See [Resource Exclusion via Annotations](resource-exclusion.md) for detailed information and examples.
+
+## Namespace Filtering
+
+### Scanning Specific Namespace
+Scan resources in a single namespace:
+```bash
+kswp scan -n my-namespace
+kswp clean -n my-namespace
+```
+
+### Excluding Namespaces
+Skip system-critical namespaces:
+```bash
+kswp scan --exclude-namespaces kube-system,kube-public
+kswp clean --exclude-namespaces kube-system,kube-public,kube-node-lease
+```
+
+When using both `-n` and `--exclude-namespaces`, if the namespace matches an excluded namespace, no scanning occurs.
 
 ## `kswp scan`
 
