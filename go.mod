@@ -11,7 +11,7 @@ require (
 	github.com/yuin/gopher-lua v1.1.1
 	k8s.io/api v0.35.4
 	k8s.io/apimachinery v0.35.4
-	k8s.io/client-go v0.35.2
+	k8s.io/client-go v0.35.4
 )
 
 require (
