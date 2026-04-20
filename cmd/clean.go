@@ -8,6 +8,7 @@ import (
 
 	"github.com/bansikah22/kswp/internal/cleaner"
 	"github.com/bansikah22/kswp/internal/kubernetes"
+	"github.com/bansikah22/kswp/internal/report"
 	"github.com/bansikah22/kswp/internal/scanner"
 	"github.com/bansikah22/kswp/pkg/models"
 	"github.com/bansikah22/kswp/test/mocks"
@@ -127,9 +128,7 @@ var cleanCmd = &cobra.Command{
 
 		if cleanDryRun {
 			fmt.Println("Resources that would be deleted:")
-			for _, res := range resourcesToClean {
-				fmt.Printf("- %s/%s (%s)\n", res.Namespace, res.Name, res.Kind)
-			}
+			report.PrintResourceTableCompact(resourcesToClean)
 			return
 		}
 

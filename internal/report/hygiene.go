@@ -2,9 +2,6 @@ package report
 
 import (
 	"fmt"
-	"os"
-	"text/tabwriter"
-	"time"
 
 	"github.com/bansikah22/kswp/pkg/models"
 )
@@ -15,16 +12,10 @@ func PrintReport(resources []models.Resource) {
 		return
 	}
 
-	fmt.Println("Cluster Scan Report")
-	fmt.Println("--------------------")
-
-	w := new(tabwriter.Writer)
-	w.Init(os.Stdout, 0, 8, 2, '\t', 0)
-	_, _ = fmt.Fprintln(w, "KIND\tNAMESPACE\tNAME\tREASON\tAGE")
-	for _, res := range resources {
-		_, _ = fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\n", res.Kind, res.Namespace, res.Name, res.Reason, res.Age.Round(time.Second).String())
-	}
-	_ = w.Flush()
+	// Use the new table-based output
+	PrintResourcesTable(resources, &TableConfig{
+		ShowReason: true,
+	})
 
 	score := CalculateHygieneScore(resources)
 	fmt.Printf("\nCluster Hygiene Score: %d/100\n", score)

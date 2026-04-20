@@ -11,22 +11,9 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 )
 
 var (
-	appStyle = lipgloss.NewStyle().Padding(1, 2)
-
-	titleStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#FFFDF5")).
-			Background(lipgloss.Color("#25A065")).
-			Padding(0, 1)
-
-	statusMessageStyle = lipgloss.NewStyle().
-				Foreground(lipgloss.AdaptiveColor{Light: "#04B575", Dark: "#04B575"})
-
-	itemStyle         = lipgloss.NewStyle().PaddingLeft(4)
-	selectedItemStyle = lipgloss.NewStyle().PaddingLeft(2).Foreground(lipgloss.Color("170"))
 )
 
 type model struct {
@@ -34,6 +21,17 @@ type model struct {
 	items    []item
 	client   kubernetes.Client
 	deleting bool
+}
+
+func (m model) ShortHelp() []key.Binding {
+	return []key.Binding{keys.Up, keys.Down, keys.Quit}
+}
+
+func (m model) FullHelp() [][]key.Binding {
+	return [][]key.Binding{
+		{keys.Up, keys.Down, keys.Select, keys.Delete},
+		{keys.Confirm, keys.Cancel, keys.Quit},
+	}
 }
 
 type item struct {
@@ -64,6 +62,12 @@ func NewModel(resources []models.Resource, client kubernetes.Client) model {
 	resourceList := list.New(listItems, delegate, 0, 0)
 	resourceList.Title = "Unused Resources"
 	resourceList.Styles.Title = titleStyle
+	resourceList.AdditionalShortHelpKeys = func() []key.Binding {
+		return []key.Binding{keys.Delete, keys.Select}
+	}
+	resourceList.AdditionalFullHelpKeys = func() []key.Binding {
+		return []key.Binding{keys.Delete, keys.Select, keys.Confirm, keys.Cancel}
+	}
 	return model{
 		list:   resourceList,
 		items:  items,
@@ -86,16 +90,16 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			break
 		}
 		switch {
-		case key.Matches(msg, key.NewBinding(key.WithKeys("space"))):
+		case key.Matches(msg, keys.Select):
 			i, ok := m.list.SelectedItem().(item)
 			if ok {
 				i.selected = !i.selected
 				m.list.SetItem(m.list.Index(), i)
 			}
-		case key.Matches(msg, key.NewBinding(key.WithKeys("d", "enter"))):
+		case key.Matches(msg, keys.Delete):
 			m.deleting = true
 			return m, nil
-		case key.Matches(msg, key.NewBinding(key.WithKeys("y"))):
+		case key.Matches(msg, keys.Confirm):
 			if m.deleting {
 				i, ok := m.list.SelectedItem().(item)
 				if ok {
@@ -107,10 +111,12 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 				m.deleting = false
 			}
-		case key.Matches(msg, key.NewBinding(key.WithKeys("n"))):
+		case key.Matches(msg, keys.Cancel):
 			if m.deleting {
 				m.deleting = false
 			}
+		case key.Matches(msg, keys.Quit):
+			return m, tea.Quit
 		}
 	}
 	newListModel, cmd := m.list.Update(msg)
@@ -123,7 +129,7 @@ func (m model) View() string {
 	if m.deleting {
 		return appStyle.Render(statusMessageStyle.Render("Are you sure you want to delete this resource? (y/n)"))
 	}
-	return appStyle.Render(m.list.View())
+	return appStyle.Render(m.list.View() + "\n" + m.list.Help.View(m))
 }
 
 func StartTUI(resources []models.Resource, client kubernetes.Client) {
